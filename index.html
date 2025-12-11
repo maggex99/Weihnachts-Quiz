@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weihnachts-Quiz für Bebush</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --rot: #b00020;
+      --dunkelrot: #5b0012;
+      --gold: #f5c76a;
+      --gruen: #0f3d2e;
+      --weiss: #fdfdfd;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top, #4a0b12, #120308);
+      color: var(--weiss);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    /* Intro Popup Overlay */
+    #introOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(3px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+
+    #introBox {
+      background: linear-gradient(145deg, rgba(20, 60, 40, 0.95), rgba(60, 20, 35, 0.95));
+      border: 2px solid rgba(245, 199, 106, 0.5);
+      border-radius: 24px;
+      padding: 24px 20px;
+      max-width: 90%;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+      animation: popIn 0.6s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .intro-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    .intro-text {
+      font-size: 0.95rem;
+      margin-bottom: 18px;
+      opacity: 0.9;
+    }
+
+    .intro-btn {
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), #ffe6a8);
+      color: #4b1d0b;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      transition: transform 0.1s ease;
+    }
+
+    .intro-btn:active { transform: scale(0.97); }
+
+    /* Snow Background Anim */
+    .snow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.4) 0, transparent 4px),
+        radial-gradient(circle at 80% 10%, rgba(255,255,255,0.3) 0, transparent 4px),
+        radial-gradient(circle at 30% 80%, rgba(255,255,255,0.35) 0, transparent 4px);
+      opacity: 0.5;
+      z-index: 0;
+      animation: snow 12s linear infinite alternate;
+    }
+
+    @keyframes snow {
+      from { transform: translateY(-10px); }
+      to   { transform: translateY(20px);  }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      background: linear-gradient(145deg, rgba(10, 40, 30, 0.95), rgba(40, 10, 20, 0.98));
+      border-radius: 24px;
+      padding: 20px 18px 22px;
+      border: 1px solid rgba(245, 199, 106, 0.35);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .card-header::before, .card-header::after {
+      content: "✨";
+      font-size: 1.2rem;
+      position: relative;
+      margin: 0 6px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(245,199,106,0.7);
+      margin: 0;
+    }
+
+    .greeting {
+      margin-top: 8px;
+      font-weight: 600;
+      color: #ffe6c2;
+    }
+
+    .progress {
+      text-align: center;
+      opacity: 0.85;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .question {
+      background: rgba(0, 0, 0, 0.18);
+      padding: 10px 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(245,199,106,0.25);
+    }
+
+    .question-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .answers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .answer-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .answer-option input {
+      margin-top: 3px;
+      flex-shrink: 0;
+      accent-color: var(--gold);
+    }
+
+    .answer-label {
+      font-size: 0.9rem;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .btn-container {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--gold), #ffe6a8);
+      color: #4b1d0b;
+      min-width: 110px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+      transition: transform 0.1s ease;
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.06);
+      color: #ffe6c2;
+      border: 1px solid rgba(245,199,106,0.4);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    button:active { transform: scale(0.97); }
+
+    #errorMessage {
+      margin-top: 8px;
+      color: #ffb3b3;
+      font-size: 0.85rem;
+      text-align: center;
+      display: none;
+    }
+
+    /* Umschlag-Screen */
+    #envelopeScreen {
+      display: none;
+      margin-top: 10px;
+      padding: 16px 14px 14px;
+      border-radius: 20px;
+      background: radial-gradient(circle at top, rgba(245,199,106,0.25), rgba(0,0,0,0.3));
+      border: 1px solid rgba(245,199,106,0.5);
+      text-align: center;
+    }
+
+    .envelope-emoji {
+      font-size: 2.4rem;
+      margin-bottom: 6px;
+    }
+
+    .envelope-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+
+    .envelope-text {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+
+    .result {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(176, 0, 32, 0.98), rgba(240,170,80, 0.95));
+      display: none;
+      text-align: center;
+    }
+
+    .result-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .result-text {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 360px) {
+      .card { padding: 16px 12px 18px; }
+      h1 { font-size: 1.3rem; }
+      .btn-container { flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="snow"></div>
+
+  <!-- 🎄 INTRO OVERLAY -->
+  <div id="introOverlay">
+    <div id="introBox">
+      <div class="intro-title">Bist du bereit, Bebush? 💕</div>
+      <div class="intro-text">
+        Dein persönliches Weihnachtslos wartet darauf, von dir entdeckt zu werden.  
+        <br><br>
+        Bereit für ein kleines Abenteuer nur für dich? ✨
+      </div>
+      <button id="startBtn" class="intro-btn">Los geht’s 🎄</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h1>Weihnachts-Quiz</h1>
+      <div class="greeting">Frohe Weihnachten, Bebush 💕</div>
+    </div>
+
+    <form id="quizForm">
+      <div id="progress" class="progress"></div>
+
+      <div class="question">
+        <div id="questionTitle" class="question-title"></div>
+        <div id="answersContainer" class="answers"></div>
+      </div>
+
+      <div id="errorMessage">
+        Bitte wähle eine Antwort aus, bevor du weitergehst. 🎁
+      </div>
+
+      <div class="btn-container">
+        <button type="button" id="prevBtn" class="secondary">Zurück</button>
+        <button type="button" id="nextBtn">Weiter</button>
+        <button type="button" id="resultBtn" style="display:none;">Ergebnis anzeigen 🎄</button>
+      </div>
+    </form>
+
+    <!-- 💌 Umschlag-Screen -->
+    <div id="envelopeScreen">
+      <div class="envelope-emoji">💌</div>
+      <div class="envelope-title">Dein Umschlag wartet…</div>
+      <div class="envelope-text">
+        Du hast alle Fragen beantwortet.  
+        Jetzt ist der Moment gekommen, dein Weihnachtslos zu öffnen.
+      </div>
+      <button id="openEnvelopeBtn">Umschlag öffnen ✨</button>
+    </div>
+
+    <!-- Ergebnis -->
+    <div id="resultBox" class="result">
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-text" id="resultText"></div>
+    </div>
+  </div>
+
+  <script>
+    // Intro
+    const introOverlay = document.getElementById("introOverlay");
+    const startBtn = document.getElementById("startBtn");
+    startBtn.addEventListener("click", () => {
+      introOverlay.style.opacity = "0";
+      setTimeout(() => introOverlay.style.display = "none", 400);
+    });
+
+    const questions = [
+      {
+        name: "q1",
+        title: "1. Welche Art von gemeinsamer Unternehmung spricht dich heute mehr an?",
+        options: [
+          {value:"gift1", label:"Etwas Aktives draußen, bei dem wir zusammen unterwegs sind und mit Freunden einen schönen Tag erleben."},
+          {value:"gift2", label:"Ein lebhafter, eindrucksvoller Tag, an dem wir gemeinsam besondere Momente sammeln."}
+        ]
+      },
+      {
+        name: "q2",
+        title: "2. Welche Atmosphäre fühlt sich für dich gerade stimmiger an?",
+        options: [
+          {value:"gift1", label:"Bewegung, frische Luft, lockeres Zusammensein und gute Stimmung mit vertrauten Menschen."},
+          {value:"gift2", label:"Eine energievolle Umgebung, viele Eindrücke, positive Vibes und das Gefühl, gemeinsam etwas Besonderes zu erleben."}
+        ]
+      },
+      {
+        name: "q3",
+        title: "3. In welchen Momenten fühlst du dich mir besonders verbunden?",
+        options: [
+          {value:"gift1", label:"Wenn wir zusammen mit Freunden etwas Aktives unternehmen und gemeinsam Spaß haben."},
+          {value:"gift2", label:"Wenn wir etwas erleben, das uns beide emotional mitreißt und uns im Moment hält."}
+        ]
+      },
+      {
+        name: "q4",
+        title: "4. Welche Art von Erinnerung würdest du lieber mitnehmen?",
+        options: [
+          {value:"gift1", label:"Einen Tag voll Bewegung, Lachen und gemeinsamen Erlebnissen mit Menschen, die uns nahestehen."},
+          {value:"gift2", label:"Einen Tag, der durch intensive Eindrücke, viel Stimmung und besondere Augenblicke im Kopf bleibt."}
+        ]
+      },
+      {
+        name: "q5",
+        title: "5. Wie soll sich der gemeinsame Tag für dich anfühlen, wenn du abends zurückblickst?",
+        options: [
+          {value:"gift1", label:"Glücklich müde, erfüllt von einem aktiven Tag und schöner Zeit mit dir und Freunden."},
+          {value:"gift2", label:"Aufgeladen, voller starker Eindrücke und dem Gefühl, gemeinsam etwas Großes erlebt zu haben."}
+        ]
+      },
+      {
+        name: "q6",
+        title: "6. Wie gehst du normalerweise mit Dingen um, die du dir zwar wünschst, dir aber nicht so leicht selbst gönnst?",
+        options: [
+          {value:"gift1", label:"Ich freue mich, wenn jemand mich überrascht und mir genau so etwas ermöglicht – das macht es für mich noch besonderer."},
+          {value:"gift2", label:"Ich warte meistens, bis es sich spontan ergibt, und genieße es dann, ohne viel darüber nachzudenken."}
+        ]
+      },
+      {
+        name: "q7",
+        title: "7. Was fühlt sich im Moment eher nach einem guten Tag für deinen Körper und dein Wohlbefinden an?",
+        options: [
+          {value:"gift1", label:"Ein Tag mit frischer Luft, Bewegung und dem Gefühl, aktiv zu sein – gemeinsam mit dir und Freunden."},
+          {value:"gift2", label:"Ein Tag voller positiver Energie und besonderer Momente, die mir emotional richtig guttun."}
+        ]
+      }
+    ];
+
+    const progressEl = document.getElementById("progress");
+    const questionTitleEl = document.getElementById("questionTitle");
+    const answersContainerEl = document.getElementById("answersContainer");
+    const errorMessage = document.getElementById("errorMessage");
+    const resultBox = document.getElementById("resultBox");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+    const envelopeScreen = document.getElementById("envelopeScreen");
+    const openEnvelopeBtn = document.getElementById("openEnvelopeBtn");
+    const quizForm = document.getElementById("quizForm");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultBtn = document.getElementById("resultBtn");
+
+    let currentIndex = 0;
+    const answers = {};
+    let finalGiftNumber = null;
+
+    function renderQuestion() {
+      const q = questions[currentIndex];
+
+      progressEl.textContent = `Frage ${currentIndex + 1} von ${questions.length}`;
+      questionTitleEl.textContent = q.title;
+
+      answersContainerEl.innerHTML = "";
+      q.options.forEach(opt => {
+        const label = document.createElement("label");
+        label.className = "answer-option";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "currentQuestion";
+        input.value = opt.value;
+        if (answers[q.name] === opt.value) input.checked = true;
+
+        const span = document.createElement("span");
+        span.className = "answer-label";
+        span.textContent = opt.label;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        answersContainerEl.appendChild(label);
+      });
+
+      prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
+      nextBtn.style.display = currentIndex === questions.length - 1 ? "none" : "inline-block";
+      resultBtn.style.display = currentIndex === questions.length - 1 ? "inline-block" : "none";
+
+      errorMessage.style.display = "none";
+      resultBox.style.display = "none";
+      envelopeScreen.style.display = "none";
+      quizForm.style.display = "block";
+    }
+
+    function getSelectedValue() {
+      const selected = document.querySelector('input[name="currentQuestion"]:checked');
+      return selected ? selected.value : null;
+    }
+
+    function saveCurrentAnswer() {
+      const value = getSelectedValue();
+      if (!value) {
+        errorMessage.style.display = "block";
+        return false;
+      }
+      answers[questions[currentIndex].name] = value;
+      return true;
+    }
+
+    function calculateResultNumber() {
+      let g1 = 0, g2 = 0;
+      questions.forEach(q => {
+        if (answers[q.name] === "gift1") g1++;
+        if (answers[q.name] === "gift2") g2++;
+      });
+      return g1 >= g2 ? 1 : 2;
+    }
+
+    function showResult(giftNumber) {
+      if (giftNumber === 1) {
+        resultTitle.textContent = "Du hast dich für Geschenk 1 entschieden! 🎁";
+        resultText.textContent = "Öffne Umschlag 1 und lass dich überraschen. Ich hoffe, dieser Tag wird ein besonderes Abenteuer mit dir. ❄️";
+      } else {
+        resultTitle.textContent = "Du hast dich für Geschenk 2 entschieden! 🎁";
+        resultText.textContent = "Öffne Umschlag 2 und mach dich bereit für ein unvergessliches Erlebnis mit mir an deiner Seite. ✨";
+      }
+      resultBox.style.display = "block";
+      resultBox.scrollIntoView({ behavior: "smooth" });
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (!saveCurrentAnswer()) return;
+      currentIndex++;
+      renderQuestion();
+    });
+
+    // Statt direkt Ergebnis zu zeigen -> Umschlag-Screen
+    resultBtn.addEventListener("click", () => {
+      if (!saveCurrentAnswer()) return;
+      finalGiftNumber = calculateResultNumber();
+      quizForm.style.display = "none";
+      resultBox.style.display = "none";
+      envelopeScreen.style.display = "block";
+      envelopeScreen.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Umschlag öffnen -> Ergebnis anzeigen
+    openEnvelopeBtn.addEventListener("click", () => {
+      envelopeScreen.style.display = "none";
+      showResult(finalGiftNumber);
+    });
+
+    // Start mit erster Frage
+    renderQuestion();
+  </script>
+</body>
+</html>
+
